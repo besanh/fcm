@@ -46,3 +46,11 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
     - Gin: web server framework
     - Jaeger: tracing service and request
     - Cobra: it helps convert golang to command lines
+
+# Setting FCM
+I'm using FCM v1 API, accessing to fcm website and downloading file **<name>.json**
+1. Open terminal and run the command
+
+    `cat service-account.json | base64`
+
+2. Copy the outcome and put it to **FCM_CREDENTIAL_BASE64** in file **.env**
