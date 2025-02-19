@@ -8,7 +8,7 @@ Main functionlities of this product are connect client to FCM and push notificat
 There are 3 main services, including **fcm-service**, **worker-service** and **logging-monitoring-service**:
 
 1. **fcm-service**: the heart of this product. It take on responsible for authentication and authorization, connect to **Goole FCM** and other functionalities.
-2. **worker-service**: take on responseible for getting messages from message queue, handling send store logs into **MongoDB**
+2. **worker-service**: take on responsible for getting messages from message queue, handling send store logs into **MongoDB**
 3. **logging-monitoring-service**: get logs from **MongoDB**, handling reports and statistics
 
 
@@ -21,6 +21,7 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
 - Message Queue: RabbitMQ
 - Design pattern: repository pattern
 
+![Project Architecture](/assets/images/architecture.png)
 
 # Project structure
 - `common`: contains common packages, supporting repeative logices
