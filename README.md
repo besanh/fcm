@@ -14,7 +14,7 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
 
 # Architecture
 - Programing Language: Golang(version 1.22 or above)
-- Protocol: HTTP(REST API) mix gRPC
+- Protocol: HTTP(REST API)
 - RDBSM: PostgreSQL
 - NoSQL: MongoDB
 - Cache: Redis
@@ -25,7 +25,7 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
 
 # Project structure
 - `common`: contains common packages, supporting repeative logices
-- `server`: define http and gRPC server
+- `server`: define http server
 - `service`: define logic layer
 - `repository`: define interfaces that connect and interact with databases
 
