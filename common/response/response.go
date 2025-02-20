@@ -2,8 +2,6 @@ package response
 
 import (
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -168,7 +166,7 @@ func ServiceUnavailableMsg(msg any) (int, any) {
 }
 
 func ResponseXml(field, val string) (int, any) {
-	return http.StatusOK, gin.H{field: val}
+	return http.StatusOK, map[string]any{field: val}
 }
 
 func Created(data any) (int, any) {
