@@ -2,70 +2,44 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dromara/carbon/v2"
 )
 
-const MAX_LIMIT = 50_000
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-
-func ParseLimit(limit any) int {
-	var val = 10
-	var err error
-	if reflect.TypeOf(limit).Kind() == reflect.String {
-		str := ParseString(limit)
-		val, err = strconv.Atoi(str)
-		if err != nil {
-			val = 10
-		}
-	} else {
-		val = ParseInt(fmt.Sprintf("%d", limit))
-	}
-	if val < 0 {
-		val, _ = strconv.Atoi(fmt.Sprintf("%s", limit))
-	} else if val > MAX_LIMIT {
-		val = MAX_LIMIT
-	}
-	return val
-}
-
-func ParseOffset(offset any) int {
-	var val = 0
-	var err error
-	if reflect.TypeOf(offset).Kind() == reflect.String {
-		str := ParseString(offset)
-		val, err = strconv.Atoi(str)
-		if err != nil {
-			val = 0
-		}
-	} else {
-		val = ParseInt(fmt.Sprintf("%d", offset))
-	}
-	if val < 0 {
-		val = 0
-	}
-	return val
-}
-
-func ParseInt(s string) int {
-	i, err := strconv.Atoi(s)
-	if err != nil {
-		return 0
-	}
-	return i
-}
-
 func ParseAnyToString(value any) (string, error) {
+	ref := reflect.ValueOf(value)
+	if ref.Kind() == reflect.String {
+		return value.(string), nil
+	} else if InArray(ref.Kind(), []reflect.Kind{reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64}) {
+		return fmt.Sprintf("%d", value), nil
+	} else if InArray(ref.Kind(), []reflect.Kind{reflect.Float32, reflect.Float64}) {
+		return fmt.Sprintf("%.3f", value), nil
+	} else if ref.Kind() == reflect.Bool {
+		return fmt.Sprintf("%t", value), nil
+	} else if ref.Kind() == reflect.Slice {
+		return fmt.Sprintf("%v", value), nil
+	}
 	bytes, err := json.Marshal(value)
 	if err != nil {
 		return "", err
 	}
 	return string(bytes), nil
+}
+
+func MustParseAnyToString(value any) string {
+	str, err := ParseAnyToString(value)
+	if err != nil {
+		return ""
+	}
+	return str
 }
 
 func ParseStringToAny(value string, dest any) error {
@@ -75,10 +49,16 @@ func ParseStringToAny(value string, dest any) error {
 	return nil
 }
 
-func ParseAnyToAny(value any, dest any) error {
-	bytes, err := json.Marshal(value)
-	if err != nil {
-		return err
+func ParseAnyToAny(value any, dest any) (err error) {
+	ref := reflect.ValueOf(value)
+	var bytes []byte
+	if ref.Kind() == reflect.String {
+		bytes = []byte(value.(string))
+	} else {
+		bytes, err = json.Marshal(value)
+		if err != nil {
+			return err
+		}
 	}
 	if err := json.Unmarshal(bytes, dest); err != nil {
 		return err
@@ -97,20 +77,23 @@ func ParseString(value any) string {
 	return str
 }
 
-func InArray(item any, array any) bool {
-	arr := reflect.ValueOf(array)
-	if arr.Kind() != reflect.Slice {
-		return false
-	}
-	for i := 0; i < arr.Len(); i++ {
-		if arr.Index(i).Interface() == item {
+func InArray[T comparable](element T, slice []T) bool {
+	for _, v := range slice {
+		if v == element {
 			return true
 		}
 	}
 	return false
 }
 
-func GenerateRandomString(n int) string {
+var LETTER_RUNES = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+
+var NUMBER_RUNES = []rune("1234567890")
+
+func GenerateRandomString(n int, letterRunes []rune) string {
+	if letterRunes == nil || len(letterRunes) < 1 {
+		letterRunes = LETTER_RUNES
+	}
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
@@ -118,63 +101,97 @@ func GenerateRandomString(n int) string {
 	return string(b)
 }
 
-func ParseToAnyArray(value []string) []any {
-	result := make([]any, 0)
-	for _, v := range value {
-		result = append(result, v)
+func ParseStringToTime(t string, timezone ...string) *time.Time {
+	if len(t) == 0 {
+		return nil
 	}
-	return result
+	c := carbon.Parse(t, timezone...)
+	if c.Error != nil {
+		return nil
+	}
+	tPtr := c.StdTime()
+	return &tPtr
 }
 
-func TimeToString(valueTime time.Time) string {
-	return TimeToStringLayout(valueTime, "2006-01-02 15:04:05")
+func CheckFromAndToDateValid(from, to time.Time, isAllowZero bool) (isOk bool, err error) {
+	if !isAllowZero {
+		if from.IsZero() {
+			return false, errors.New("is zero")
+		}
+		if to.IsZero() {
+			return false, errors.New("is zero")
+		}
+	} else if from.After(to) {
+		return false, errors.New("from date must be before to date")
+	}
+	isOk = true
+	return
 }
 
-func TimeToStringLayout(valueTime time.Time, layout string) string {
-	return valueTime.Format(layout)
-}
-
-func InArrayContains(item string, array []string) bool {
-	for _, v := range array {
-		if strings.Contains(item, v) {
-			return true
+func RemoveDuplicate[T comparable](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
 		}
 	}
-	return false
+	return list
 }
 
-func ParseStructToByte(data any) ([]byte, error) {
-	value, err := ParseAnyToString(data)
+func RemoveEmpty[T string](sliceList []T) []T {
+	list := []T{}
+	for _, item := range sliceList {
+		if item != "" {
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func ParseFloat64(value any) float64 {
+	if value == nil {
+		return 0
+	}
+	// convert to string
+	str := MustParseAnyToString(value)
+	// convert to float
+	result, err := strconv.ParseFloat(str, 64)
 	if err != nil {
-		return nil, err
-	}
-	byteSlice := []byte(value)
-	return byteSlice, nil
-}
-
-func ParseQueryArray(slice []string) []string {
-	result := make([]string, 0)
-	for _, v := range slice {
-		if len(v) > 0 {
-			result = append(result, v)
-		}
+		return 0
 	}
 	return result
 }
 
-func ContainKeywords(content string, keywords []string) bool {
-	for _, keyword := range keywords {
-		if strings.Contains(content, keyword) {
-			return true
-		}
+func ParseInt64(value any) int64 {
+	if value == nil {
+		return 0
 	}
-	return false
+	// convert to string
+	str := MustParseAnyToString(value)
+	// convert to int
+	result, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return result
 }
 
-func SliceToMap[T comparable](slice []T) map[T]bool {
-	set := make(map[T]bool)
-	for _, v := range slice {
-		set[v] = true
+// func to get end of day
+func GetEndOfDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+}
+
+// func to parse float64 only with 2 decimal
+func ParseFloat64With2Decimal(value float64) float64 {
+	return math.Round(value*100) / 100
+}
+
+// func to ternary
+func Ternary[T any](condition bool, trueVal T, falseVal T) T {
+	if condition {
+		return trueVal
 	}
-	return set
+	return falseVal
 }

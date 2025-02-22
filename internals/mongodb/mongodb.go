@@ -17,6 +17,7 @@ type (
 		Collection(mollection string) *mongo.Collection
 		SetCollectionNames(arr []string)
 		GetCollectionNames() []string
+		Ping()
 	}
 	MongoDBClient struct {
 		Config           MongoDBConfig
@@ -72,6 +73,7 @@ func (m *MongoDBClient) Connect() (err error) {
 		log.Errorf("error: %v", err)
 		return
 	}
+	log.Debug("Connected to MongoDB")
 
 	m.Client = client
 
@@ -91,4 +93,11 @@ func (m *MongoDBClient) SetCollectionNames(arr []string) {
 }
 func (m *MongoDBClient) GetCollectionNames() []string {
 	return m.CollectionNames
+}
+
+func (m *MongoDBClient) Ping() {
+	if err := m.Client.Ping(context.Background(), nil); err != nil {
+		log.Errorf("error: %v", err)
+	}
+	log.Debug("Connected to MongoDB")
 }
