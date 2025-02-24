@@ -3,7 +3,7 @@ package main
 import (
 	"fcm/common/env"
 	"fcm/common/util"
-	"fcm/internals/mongodb"
+	"fcm/pkgs/mongodb"
 	"log/slog"
 	"strings"
 
@@ -73,16 +73,21 @@ func initMongoDb() {
 	}
 
 	var err error
-	// var db mongodb.IMongoDBClient
-	_, err = mongodb.NewMongoDBClient(mongodbConfig)
+	var db mongodb.IMongoDBClient
+	db, err = mongodb.NewMongoDBClient(mongodbConfig)
 	if err != nil {
 		log.Errorf("mongodb connect error: %v", err)
 		panic(err)
 	}
+	initRepositories(db)
 }
 
 func initFcm() {
 	// fcm
+}
+
+func initRepositories(db mongodb.IMongoDBClient) {
+
 }
 
 func main() {
