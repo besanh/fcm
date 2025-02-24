@@ -4,7 +4,7 @@ Copyright © 2025 AnhLe. All rights reserved.
 </div>
 
 # Introduction
-Main functionlities of this product are connect client to FCM and push notification to mobile devices.
+Main functionlities of this product are connect client to FCM and push notification to mobile(ios, android) or website.
 
 There are 3 main services, including **fcm-service**, **worker-service** and **logging-monitoring-service**:
 
@@ -16,19 +16,28 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
 # Architecture
 - Programing Language: Golang(version 1.22 or above)
 - Protocol: HTTP(REST API)
-- RDBSM: PostgreSQL
 - NoSQL: MongoDB
-- Cache: Redis
-- Message Queue: RabbitMQ
-- Design pattern: repository pattern
+- Caching: Redis
+- Message Queue: Redis pub/sub or Google cloud pub/sub
+- Design pattern: Repository pattern, Circuit breaker pattern
+- Monitor api: Sentry, Jaeger, Opentelemetry
+- Document: Swagger
 
 ![Project Architecture](/assets/images/architecture.png)
 
 # Project structure
-- `common`: contains common packages, supporting repeative logices
-- `server`: define http server
-- `service`: define logic layer
-- `repository`: define interfaces that connect and interact with databases
+1. **apis**: defines paths of apis
+2. **repositories**: defines mongodb connection
+3. **services**: defines logics
+4. **common**: defines supported packages
+5. **models**: defines structs
+6. **servers**: defines server to run api
+7. **tmp**: includes file log of this project
+8. **build**: bash to build source code
+9. **Dockerfile**: a Docker file help you to build an image
+10. **assets**: includes images and media
+11. **pkgs**: defines all needed libraries
+12. **dockercomposes**: includes all docker compose to install and run docker container on server
 
 # Commit guidelines
 - `{action}-{write briefly content (max 50 characters)}`
@@ -45,13 +54,20 @@ There are 3 main services, including **fcm-service**, **worker-service** and **l
 
 - A few libraries:
     - Gin: web server framework
-    - Jaeger: tracing service and request
+    - OpenTelemetry: tracing service and request
     - Cobra: it helps convert golang to command lines
 
 # Setting FCM
 I'm using FCM v1 API, accessing to fcm website and downloading file **<name>.json**
 1. Open terminal and run the command
-
-    `cat service-account.json | base64`
+```
+cat service-account.json | base64
+```
 
 2. Copy the outcome and put it to **FCM_CREDENTIAL_BASE64** in file **.env**
+
+# Monitor
+You must install **Jaeger** and **Opentelemetry** on the server and access below address to monitor
+```
+{{your IP or domain}}:16686
+```
