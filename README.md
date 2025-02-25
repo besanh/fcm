@@ -1,16 +1,15 @@
 <div align="center">
 <h1>FCM API Microservices</h1>
-Copyright © 2025 AnhLe. All rights reserved.
 </div>
 
 # Introduction
 Main functionlities of this product are connect client to FCM and push notification to mobile(ios, android) or website.
 
-There are 3 main services, including **fcm-service**, **worker-service** and **logging-monitoring-service**:
+There are 3 parts, including main fcm process, worker background, logging and monitoring:
 
-1. **fcm-service**: the heart of this product. It take on responsible for authentication and authorization, connect to **Goole FCM** and other functionalities.
-2. **worker-service**: take on responsible for getting messages from message queue, handling send and store logs into **MongoDB**
-3. **logging-monitoring-service**: get logs from **MongoDB**, handling reports and statistics
+1. **fcm**: the heart of this product. It take on responsible for authentication and authorization, connect to **Goole FCM** and other functionalities.
+2. **worker background**: take on responsible for getting messages from message queue, handling send and store logs into **MongoDB**
+3. **logging and monitoring**: get logs from **MongoDB**, handling reports and statistics
 
 
 # Architecture
@@ -71,3 +70,8 @@ You must install **Jaeger** and **Opentelemetry** on the server and access below
 ```
 {{your IP or domain}}:16686
 ```
+
+
+<div align="center">
+Copyright © 2025 AnhLe. All rights reserved.
+</div>
