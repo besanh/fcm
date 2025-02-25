@@ -11,6 +11,11 @@ There are 3 parts, including main fcm process, worker background, logging and mo
 2. **worker background**: take on responsible for getting messages from message queue, handling send and store logs into **MongoDB**
 3. **logging and monitoring**: get logs from **MongoDB**, handling reports and statistics
 
+# Roadmap
+1. **Phase 1**: design and config the system architecture, build the structure of source code folder.
+Design and develop the authentication use OAuth 2.0
+2. **Phase 2**: develope apis push notification to FCM, process data in background queue as worker
+3. **Phase 3**: develope logging and monitoring, implement swagger and other and other relevant technologies
 
 # Architecture
 - Programing Language: Golang(version 1.22 or above)
