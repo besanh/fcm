@@ -30,6 +30,8 @@ type (
 	}
 )
 
+var Redis IRedis
+
 func NewRedis(config RedisConfig) (IRedis, error) {
 	redisClient := &RedisClient{
 		Config: config,

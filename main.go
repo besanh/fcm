@@ -3,14 +3,17 @@ package main
 import (
 	"fcm/common/env"
 	"fcm/common/util"
+	"fcm/common/variables"
+	messagequeue "fcm/pkgs/message_queue"
 	"fcm/pkgs/mongodb"
+	"fcm/pkgs/redis"
+	"fcm/server"
 	"log/slog"
 	"strings"
 
 	log "github.com/besanh/logger/logging/slog"
 
 	"github.com/fluent/fluent-logger-golang/fluent"
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -19,8 +22,13 @@ func init() {
 		panic(err)
 	}
 
+	variables.API_VERSION = env.GetStringENV("API_VERSION", "v1.0")
+	variables.API_SERVICE_NAME = env.GetStringENV("API_SERVICE_NAME", "fcm")
+
 	initLogger()
+	initRedis()
 	initMongoDb()
+	initNatsJetstream()
 	initFcm()
 }
 
@@ -82,6 +90,34 @@ func initMongoDb() {
 	initRepositories(db)
 }
 
+func initRedis() {
+	redisClient := &redis.RedisConfig{
+		Host:         env.GetStringENV("REDIS_HOST", "localhost"),
+		Password:     env.GetStringENV("REDIS_PASSWORD", ""),
+		DB:           env.GetIntENV("REDIS_DB", 0),
+		PoolSize:     env.GetIntENV("REDIS_POOL_SIZE", 10),
+		PoolTimeout:  env.GetIntENV("REDIS_POOL_TIMEOUT", 10),
+		ReadTimeout:  env.GetIntENV("REDIS_READ_TIMEOUT", 10),
+		WriteTimeout: env.GetIntENV("REDIS_WRITE_TIMEOUT", 10),
+	}
+
+	var err error
+	if redis.Redis, err = redis.NewRedis(*redisClient); err != nil {
+		panic(err)
+	}
+}
+
+func initNatsJetstream() {
+	nat := &messagequeue.NatsJetStream{
+		Config: messagequeue.Config{
+			Host: env.GetStringENV("NATS_JETSTREAM_HOST", "localhost:4222"),
+		},
+	}
+	if err := nat.Connect(); err != nil {
+		panic(err)
+	}
+}
+
 func initFcm() {
 	// fcm
 }
@@ -91,7 +127,7 @@ func initRepositories(db mongodb.IMongoDBClient) {
 }
 
 func main() {
-	engine := gin.Default()
+	server := server.NewServer()
 
-	engine.Run(":8000")
+	server.Start(env.GetStringENV("API_PORT", "8000"))
 }

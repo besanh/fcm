@@ -22,7 +22,7 @@ Design and develop the authentication use OAuth 2.0
 - Protocol: HTTP(REST API)
 - NoSQL: MongoDB
 - Caching: Redis
-- Message Queue: Redis pub/sub or Google cloud pub/sub
+- Message Queue: Redis pub/sub or NATS Jetstream
 - Design pattern: Repository pattern, Circuit breaker pattern
 - Monitor api: Sentry, Jaeger, Opentelemetry
 - Document: Swagger
