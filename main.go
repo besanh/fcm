@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fcm/common/env"
 	"fcm/common/util"
 	"fcm/common/variables"
@@ -128,6 +129,13 @@ func initRepositories(db mongodb.IMongoDBClient) {
 
 func main() {
 	server := server.NewServer()
+
+	isOk, err := util.Decrypt(env.GetStringENV("SECRET_KEY", ""))
+	if err != nil {
+		panic(err)
+	} else if !isOk {
+		panic(errors.New("secret_key was incorrect"))
+	}
 
 	server.Start(env.GetStringENV("API_PORT", "8000"))
 }

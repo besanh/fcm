@@ -59,7 +59,7 @@ Design and develop the authentication use OAuth 2.0
 - A few libraries:
     - Gin: web server framework
     - OpenTelemetry: tracing service and request
-    - Cobra: it helps convert golang to command lines
+    - Cobra: it's helps convert golang to command lines
 
 # Setting FCM
 I'm using FCM v1 API, accessing to fcm website and downloading file **<name>.json**
@@ -68,7 +68,9 @@ I'm using FCM v1 API, accessing to fcm website and downloading file **<name>.jso
 cat service-account.json | base64
 ```
 
-2. Copy the outcome and put it to **FCM_CREDENTIAL_BASE64** in file **.env**
+2. Put **SECRET_KEY** value to file **.env. It's helps extreamly securing source code
+
+3. Copy the outcome and put it to **FCM_CREDENTIAL_BASE64** in file **.env**
 
 # Monitor
 You must install **Jaeger** and **Opentelemetry** on the server and access below address to monitor
