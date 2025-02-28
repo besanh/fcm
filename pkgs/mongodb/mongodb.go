@@ -68,6 +68,7 @@ func (m *MongoDBClient) Connect() (err error) {
 		log.Errorf("error: %v", err)
 		return
 	}
+	defer client.Disconnect(ctx)
 
 	if err = client.Ping(ctx, nil); err != nil {
 		log.Errorf("error: %v", err)
