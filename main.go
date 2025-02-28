@@ -8,7 +8,9 @@ import (
 	messagequeue "fcm/pkgs/message_queue"
 	"fcm/pkgs/mongodb"
 	"fcm/pkgs/redis"
+	"fcm/repositories"
 	"fcm/server"
+	"fcm/services"
 	"log/slog"
 	"strings"
 
@@ -16,6 +18,10 @@ import (
 
 	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/joho/godotenv"
+)
+
+var (
+	DB mongodb.IMongoDBClient
 )
 
 func init() {
@@ -88,7 +94,8 @@ func initMongoDb() {
 		log.Errorf("mongodb connect error: %v", err)
 		panic(err)
 	}
-	initRepositories(db)
+
+	DB = db
 }
 
 func initRedis() {
@@ -123,13 +130,7 @@ func initFcm() {
 	// fcm
 }
 
-func initRepositories(db mongodb.IMongoDBClient) {
-
-}
-
 func main() {
-	server := server.NewServer()
-
 	isOk, err := util.Decrypt(env.GetStringENV("SECRET_KEY", ""))
 	if err != nil {
 		panic(err)
@@ -137,5 +138,17 @@ func main() {
 		panic(errors.New("secret_key was incorrect"))
 	}
 
+	// Gin
+	server := server.NewServer()
+	// OAuth 2.0
+	server.NewOAuthServer()
+
+	initServices()
+
 	server.Start(env.GetStringENV("API_PORT", "8000"))
+}
+
+func initServices() {
+	userRepo := repositories.NewUser(DB)
+	services.NewUser(userRepo)
 }
