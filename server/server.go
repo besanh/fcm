@@ -13,7 +13,16 @@ type Server struct {
 	Engine *gin.Engine
 }
 
-func NewServer() *Server {
+func NewServer(envMode string) *Server {
+	switch envMode {
+	case "test":
+		gin.SetMode(gin.TestMode)
+	case "release":
+		gin.SetMode(gin.ReleaseMode)
+	default:
+		gin.SetMode(gin.DebugMode)
+	}
+
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.MaxMultipartMemory = 100 << 20

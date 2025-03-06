@@ -13,6 +13,7 @@ import (
 type (
 	IMongoDBClient interface {
 		Connect() (err error)
+		Disconnect()
 		DB() *mongo.Database
 		Collection(mollection string) *mongo.Collection
 		SetCollectionNames(arr []string)
@@ -65,20 +66,24 @@ func (m *MongoDBClient) Connect() (err error) {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(m.ConnectionString).SetAuth(m.Credential))
 	if err != nil {
-		log.Errorf("error: %v", err)
+		log.Fatalf("error: %v", err)
 		return
 	}
-	defer client.Disconnect(ctx)
 
 	if err = client.Ping(ctx, nil); err != nil {
-		log.Errorf("error: %v", err)
+		log.Fatalf("error: %v", err)
 		return
 	}
-	log.Debug("Connected to MongoDB")
 
 	m.Client = client
 
 	return
+}
+
+func (m *MongoDBClient) Disconnect() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	m.Client.Disconnect(ctx)
 }
 
 func (m *MongoDBClient) DB() *mongo.Database {
@@ -98,7 +103,7 @@ func (m *MongoDBClient) GetCollectionNames() []string {
 
 func (m *MongoDBClient) Ping() {
 	if err := m.Client.Ping(context.Background(), nil); err != nil {
-		log.Errorf("error: %v", err)
+		log.Error("error: %v", err)
 	}
 	log.Debug("Connected to MongoDB")
 }

@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -34,6 +35,14 @@ func GetTimeDurationENV(envVar string, defaultValue time.Duration) (value time.D
 	value = defaultValue
 	if valueStr := os.Getenv(envVar); len(valueStr) > 0 {
 		value, _ = time.ParseDuration(valueStr)
+	}
+	return
+}
+
+func GetSliceStringENV(envVar string, defaultValue []string) (value []string) {
+	value = defaultValue
+	if valueStr := os.Getenv(envVar); len(valueStr) > 0 {
+		value = append(value, strings.Split(valueStr, ",")...)
 	}
 	return
 }

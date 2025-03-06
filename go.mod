@@ -4,14 +4,16 @@ go 1.23.2
 
 require (
 	github.com/besanh/logger v1.0.8
-	github.com/dromara/carbon/v2 v2.5.3
+	github.com/dromara/carbon/v2 v2.5.4
 	github.com/gookit/slog v0.5.7
 	github.com/nats-io/nats.go v1.39.1
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/bytedance/sonic v1.12.9 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
+	github.com/bytedance/sonic v1.12.10 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -21,12 +23,9 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gin-contrib/sse v1.0.0 // indirect
-	github.com/go-oauth2/oauth2/v4 v4.5.2 // indirect
-	github.com/go-oauth2/redis/v4 v4.1.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.25.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-session/session v3.1.2+incompatible // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -80,13 +79,13 @@ require (
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/arch v0.14.0 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
+	go.uber.org/ratelimit v0.3.1 // indirect
+	golang.org/x/arch v0.15.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
-	gopkg.in/go-oauth2/mongo.v3 v3.2.0 // indirect
 	gopkg.in/oauth2.v3 v3.12.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	mellium.im/sasl v0.3.2 // indirect
@@ -96,11 +95,11 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.29.0
 	github.com/fluent/fluent-logger-golang v1.9.0
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-oauth2/oauth2 v3.9.2+incompatible
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gookit/goutil v0.6.18 // indirect
 	github.com/gookit/gsr v0.1.0 // indirect
+	github.com/jellydator/ttlcache/v3 v3.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/uptrace/bun v1.2.10
@@ -111,7 +110,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xuri/excelize/v2 v2.9.0
 	go.mongodb.org/mongo-driver v1.17.3
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 )

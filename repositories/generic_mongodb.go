@@ -34,6 +34,13 @@ type (
 		BulkDeleteOneById(ctx context.Context, entities []*T) (err error)
 		BulkWriteDelete(ctx context.Context, entities []*T) (err error)
 		BulkDeleteManyByFilter(ctx context.Context, filter bson.M) (err error)
+
+		// Transaction
+		StartSession() (mongo.Session, error)
+		EndSession(ctx context.Context, session mongo.Session)
+		StartTransaction(session mongo.Session) error
+		AbortTransaction(ctx context.Context, session mongo.Session) error
+		CommitTransaction(ctx context.Context, session mongo.Session) error
 	}
 
 	RepoGeneric[T models.GModel] struct {
@@ -67,14 +74,9 @@ func (repo *RepoGeneric[T]) GetById(ctx context.Context, id string) (result *T, 
 }
 
 func (repo *RepoGeneric[T]) Insert(ctx context.Context, entity *T) (err error) {
-	docs := make([]any, 0)
-	(*entity).SetCreatedAt(time.Now())
-	(*entity).SetUpdatedAt(time.Now())
-	docs = append(docs, entity)
-
-	result, errTmp := repo.DB.Collection(repo.Collection).InsertOne(ctx, docs, &options.InsertOneOptions{})
-	if result.InsertedID == nil {
-		err = errors.New("insert failed")
+	result, errTmp := repo.DB.Collection(repo.Collection).InsertOne(ctx, entity)
+	if result == nil || result.InsertedID == nil {
+		err = errors.New("insert mongo failed")
 	} else if errTmp != nil {
 		err = errTmp
 	}
@@ -234,4 +236,24 @@ func (repo *RepoGeneric[T]) Select(ctx context.Context, limit, offset int64, par
 
 func (repo *RepoGeneric[T]) GetCollection() *mongo.Collection {
 	return repo.DB.Collection(repo.Collection)
+}
+
+func (repo *RepoGeneric[T]) StartSession() (mongo.Session, error) {
+	return repo.DB.DB().Client().StartSession()
+}
+
+func (repo *RepoGeneric[T]) EndSession(ctx context.Context, session mongo.Session) {
+	session.EndSession(ctx)
+}
+
+func (repo *RepoGeneric[T]) StartTransaction(session mongo.Session) error {
+	return session.StartTransaction()
+}
+
+func (repo *RepoGeneric[T]) AbortTransaction(ctx context.Context, session mongo.Session) error {
+	return session.AbortTransaction(ctx)
+}
+
+func (repo *RepoGeneric[T]) CommitTransaction(ctx context.Context, session mongo.Session) error {
+	return session.CommitTransaction(ctx)
 }

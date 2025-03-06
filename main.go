@@ -2,19 +2,24 @@ package main
 
 import (
 	"errors"
+	v1 "fcm/apis/v1"
+	"fcm/common/cache"
 	"fcm/common/env"
 	"fcm/common/util"
 	"fcm/common/variables"
 	messagequeue "fcm/pkgs/message_queue"
 	"fcm/pkgs/mongodb"
+	"fcm/pkgs/oauth"
 	"fcm/pkgs/redis"
 	"fcm/repositories"
 	"fcm/server"
 	"fcm/services"
 	"log/slog"
+	"slices"
 	"strings"
 
 	log "github.com/besanh/logger/logging/slog"
+	"golang.org/x/oauth2"
 
 	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/joho/godotenv"
@@ -113,6 +118,8 @@ func initRedis() {
 	if redis.Redis, err = redis.NewRedis(*redisClient); err != nil {
 		panic(err)
 	}
+
+	cache.RCache = cache.NewRedisCache(redis.Redis.GetClient())
 }
 
 func initNatsJetstream() {
@@ -131,7 +138,7 @@ func initFcm() {
 }
 
 func main() {
-	isOk, err := util.Decrypt(env.GetStringENV("SECRET_KEY", ""))
+	isOk, err := util.DecryptSecret(env.GetStringENV("SECRET_KEY", ""))
 	if err != nil {
 		panic(err)
 	} else if !isOk {
@@ -139,16 +146,36 @@ func main() {
 	}
 
 	// Gin
-	server := server.NewServer()
-	// OAuth 2.0
-	server.NewOAuthServer()
+	envMode := env.GetStringENV("ENV", "debug")
+	if slices.Contains([]string{"debug", "test", "release"}, envMode) {
+		panic(errors.New("env was incorrect"))
+	}
+	server := server.NewServer(envMode)
 
-	initServices()
+	initServices(server)
 
 	server.Start(env.GetStringENV("API_PORT", "8000"))
 }
 
-func initServices() {
-	userRepo := repositories.NewUser(DB)
-	services.NewUser(userRepo)
+func initServices(server *server.Server) {
+	repositories.UserRepo = repositories.NewUser(&DB)
+
+	oau2Scope := env.GetSliceStringENV("OAUTH2_SCOPE", []string{})
+	services.OAUTH2CONFIG = &oauth.OAuth2Config{
+		ClientId:     env.GetStringENV("OAUTH2_CLIENT_ID", ""),
+		ClientSecret: env.GetStringENV("OAUTH2_CLIENT_SECRET", ""),
+		Scopes:       oau2Scope,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  env.GetStringENV("OAUTH2_ENDPOINT_AUTH_URL", ""),
+			TokenURL: env.GetStringENV("OAUTH2_ENDPOINT_TOKEN_URL", ""),
+		},
+		Redirect: env.GetStringENV("OAUTH2_REDIRECT_URL", ""),
+	}
+
+	oAuth2Client := oauth.NewOAuth2(*services.OAUTH2CONFIG)
+
+	services.NewUser(repositories.UserRepo, oAuth2Client)
+
+	// Handler
+	v1.NewUser(server.Engine, services.NewUser(repositories.UserRepo, oAuth2Client))
 }
