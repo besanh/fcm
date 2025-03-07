@@ -3,7 +3,8 @@ package services
 import "fcm/pkgs/oauth"
 
 var (
-	OAUTH2CONFIG *oauth.OAuth2Config
+	OAUTH2CONFIG               *oauth.OAuth2Config
+	ENABLE_LOGIN_MULTI_SESSION bool = false
 )
 
 const (

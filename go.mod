@@ -3,6 +3,7 @@ module fcm
 go 1.23.2
 
 require (
+	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/besanh/logger v1.0.8
 	github.com/dromara/carbon/v2 v2.5.4
 	github.com/gookit/slog v0.5.7

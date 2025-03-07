@@ -15,9 +15,12 @@ import (
 	"fcm/server"
 	"fcm/services"
 	"log/slog"
+	"net/http"
 	"slices"
 	"strings"
+	"time"
 
+	"github.com/alexedwards/scs/v2"
 	log "github.com/besanh/logger/logging/slog"
 	"golang.org/x/oauth2"
 
@@ -26,7 +29,8 @@ import (
 )
 
 var (
-	DB mongodb.IMongoDBClient
+	DB             mongodb.IMongoDBClient
+	sessionManager *scs.SessionManager
 )
 
 func init() {
@@ -150,7 +154,18 @@ func main() {
 	if slices.Contains([]string{"debug", "test", "release"}, envMode) {
 		panic(errors.New("env was incorrect"))
 	}
-	server := server.NewServer(envMode)
+
+	// Manage session
+	sessionManager = scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	sessionManager.Cookie.Persist = true
+	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
+
+	// Set true if using HTTPS
+	sessionManager.Cookie.Secure = false
+
+	server := server.NewServer(envMode, sessionManager)
+	services.ENABLE_LOGIN_MULTI_SESSION = env.GetBoolENV("ENABLE_LOGIN_MULTI_SESSION", false)
 
 	initServices(server)
 
@@ -177,5 +192,5 @@ func initServices(server *server.Server) {
 	services.NewUser(repositories.UserRepo, oAuth2Client)
 
 	// Handler
-	v1.NewUser(server.Engine, services.NewUser(repositories.UserRepo, oAuth2Client))
+	v1.NewUser(server.Engine, sessionManager, services.NewUser(repositories.UserRepo, oAuth2Client))
 }

@@ -7,16 +7,19 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	userService services.IUser
+	userService    services.IUser
+	sessionManager *scs.SessionManager
 }
 
-func NewUser(engine *gin.Engine, userService services.IUser) {
+func NewUser(engine *gin.Engine, sessionManager *scs.SessionManager, userService services.IUser) {
 	handler := &UserHandler{
-		userService: userService,
+		userService:    userService,
+		sessionManager: sessionManager,
 	}
 
 	engine.GET("login", handler.Login)

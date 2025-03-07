@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/oauth2"
 )
@@ -24,8 +25,9 @@ type (
 	}
 
 	User struct {
-		userRepo     repositories.IUser
-		oauth2Client oauth.IOAuth2
+		userRepo       repositories.IUser
+		oauth2Client   oauth.IOAuth2
+		sessionManager *scs.SessionManager
 	}
 )
 
@@ -72,6 +74,10 @@ func (s *User) Login(ctx context.Context) (callbackUrl string) {
 }
 
 func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Callback) (token string, err error) {
+	// s.sessionManager.Put(ctx, fmt.Sprintf("authenticated:%s", callbackData.State), true)
+	// s.sessionManager.Put(ctx, "user_id", "user123")
+	// s.sessionManager.Put(ctx, "device_id", "deviceXYZ")
+
 	// PKCE
 	verifierCache := cache.RCache.Get(fmt.Sprintf("pkce:%s", callbackData.State))
 	if verifierCache == nil {
@@ -89,7 +95,7 @@ func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Ca
 	// Calculate TTL for the access token based on its expiry time
 	ttl := time.Until(userInfo.Expiry)
 
-	refreshToken, err := util.Encrypt(userInfo.RefreshToken)
+	refreshTokenEncrypted, err := util.Encrypt(userInfo.RefreshToken)
 	if err != nil {
 		log.Error(err)
 		return
@@ -98,12 +104,12 @@ func (s *User) OAuth2Callback(ctx context.Context, callbackData *models.OAuth2Ca
 	user := &models.User{
 		GBase:                 models.InitBase(),
 		Status:                constant.USER_STATUS_ACTIVE,
-		RefreshTokenEncrypted: refreshToken,
+		RefreshTokenEncrypted: refreshTokenEncrypted,
 	}
 
 	// Start transaction redis
 	redisTx := cache.RCache.TxPineLine()
-	cache.RCache.TxSet(ctx, redisTx, OAUTH2_TOKEN, userInfo.AccessToken, ttl)
+	cache.RCache.TxSet(ctx, redisTx, fmt.Sprintf("%s:%s", OAUTH2_TOKEN, userInfo.AccessToken), userInfo.AccessToken, ttl)
 
 	// Start transaction mongodb
 	mongoSession, err := s.userRepo.StartSession()

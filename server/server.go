@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,7 @@ type Server struct {
 	Engine *gin.Engine
 }
 
-func NewServer(envMode string) *Server {
+func NewServer(envMode string, sessionManager *scs.SessionManager) *Server {
 	switch envMode {
 	case "test":
 		gin.SetMode(gin.TestMode)
@@ -24,6 +25,11 @@ func NewServer(envMode string) *Server {
 	}
 
 	engine := gin.New()
+	engine.Use(func(c *gin.Context) {
+		sessionManager.LoadAndSave(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).
+			ServeHTTP(c.Writer, c.Request)
+		c.Next()
+	})
 	engine.Use(gin.Recovery())
 	engine.MaxMultipartMemory = 100 << 20
 	engine.Use(CORSMiddleware())
